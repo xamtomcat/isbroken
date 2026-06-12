@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IS BROKEN — The Clickbait Machine</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow+Condensed:wght@400;700;900&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #e8001e;
+    --yellow: #f5d800;
+    --white: #f5f0e8;
+    --black: #0a0a0a;
+    --grey: #1a1a1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    background: var(--black);
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* TICKER */
+  .ticker-wrap {
+    background: var(--red);
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 6px 0;
+    border-bottom: 3px solid var(--yellow);
+  }
+  .ticker {
+    display: inline-block;
+    animation: ticker 18s linear infinite;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  @keyframes ticker {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* HEADER */
+  header {
+    padding: 28px 40px 20px;
+    border-bottom: 1px solid #222;
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+  }
+  .logo {
+    font-family: 'Anton', sans-serif;
+    font-size: 52px;
+    letter-spacing: -1px;
+    line-height: 1;
+    color: var(--white);
+  }
+  .logo span {
+    color: var(--red);
+  }
+  .tagline {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 50px 40px 80px;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 60px;
+    align-items: start;
+  }
+
+  /* LEFT: INPUT PANEL */
+  .input-panel {
+    position: sticky;
+    top: 30px;
+  }
+
+  .panel-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #888;
+    margin-bottom: 12px;
+  }
+
+  .input-group {
+    margin-bottom: 20px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: #111;
+    border: 1px solid #333;
+    border-left: 3px solid var(--red);
+    color: var(--white);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]::placeholder { color: #333; }
+  input[type="text"]:focus { border-color: var(--yellow); }
+
+  .generate-btn {
+    width: 100%;
+    background: var(--red);
+    color: var(--white);
+    border: none;
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    padding: 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.15s;
+  }
+  .generate-btn:hover { background: #c00018; }
+  .generate-btn:active { transform: scale(0.99); }
+  .generate-btn.loading { background: #333; cursor: not-allowed; }
+
+  .spinner {
+    display: none;
+    width: 18px; height: 18px;
+    border: 2px solid #555;
+    border-top-color: var(--white);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .btn-text { display: block; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid #222;
+    margin: 28px 0;
+  }
+
+  /* TONE SELECTOR */
+  .tone-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .tone-btn {
+    background: #111;
+    border: 1px solid #2a2a2a;
+    color: #999;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 9px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .tone-btn:hover { border-color: #555; color: #ddd; }
+  .tone-btn.active { border-color: var(--red); color: var(--white); background: #1a0005; }
+
+  /* RIGHT: OUTPUT */
+  .output-panel {}
+
+  .output-empty {
+    text-align: center;
+    padding: 80px 0;
+    color: #2a2a2a;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .output-empty .big { font-family: 'Anton', sans-serif; font-size: 72px; color: #1a1a1a; display: block; letter-spacing: 3px; }
+
+  /* CARD */
+  .card {
+    display: none;
+    animation: fadeUp 0.4s ease;
+  }
+  .card.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* THE THUMBNAIL */
+  .thumbnail {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #111;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .thumb-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+  }
+
+  /* Generated thumbnail art layer (subject-seeded SVG) */
+  .thumb-art {
+    position: absolute;
+    inset: 0;
+  }
+  .thumb-art svg { display: block; width: 100%; height: 100%; }
+
+  /* Breaking news banner */
+  .breaking-banner {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    background: var(--red);
+    padding: 7px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+  }
+  .breaking-tag {
+    background: var(--white);
+    color: var(--red);
+    font-family: 'Anton', sans-serif;
+    font-size: 11px;
+    padding: 2px 7px;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+  .breaking-scroll {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--white);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* MAIN HEADLINE */
+  .headline-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 16px 18px 20px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.95));
+    z-index: 10;
+  }
+  .headline-main {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(22px, 3.5vw, 38px);
+    line-height: 1.05;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .headline-main .broken-word {
+    color: var(--yellow);
+    -webkit-text-stroke: 1px var(--yellow);
+  }
+  .headline-main .is-broken {
+    color: var(--white);
+    background: var(--red);
+    padding: 0 6px;
+    display: inline-block;
+    transform: skewX(-3deg);
+  }
+
+  .channel-bug {
+    position: absolute;
+    top: 38px;
+    right: 14px;
+    background: rgba(0,0,0,0.7);
+    padding: 4px 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: #aaa;
+    border: 1px solid #333;
+    z-index: 10;
+  }
+
+  .duration-bug {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    background: rgba(0,0,0,0.85);
+    padding: 2px 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--white);
+    z-index: 20;
+    display: none; /* will show after gen */
+  }
+
+  /* VIDEO META */
+  .video-meta {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .channel-avatar {
+    width: 36px; height: 36px;
+    background: var(--red);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Anton', sans-serif;
+    font-size: 14px;
+    color: var(--white);
+  }
+  .meta-right { flex: 1; }
+  .video-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.25;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+  .video-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 0.05em;
+  }
+  .video-sub span { color: #444; }
+
+  /* SUBHEADLINES */
+  .subheads {
+    margin-top: 28px;
+    border-top: 1px solid #1a1a1a;
+    padding-top: 24px;
+  }
+  .subheads-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #444;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 14px;
+  }
+  .subhead-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid #111;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .subhead-num {
+    font-family: 'Anton', sans-serif;
+    font-size: 28px;
+    color: #444;
+    line-height: 1;
+    flex-shrink: 0;
+    width: 32px;
+    text-align: right;
+  }
+  .subhead-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: #ccc;
+    line-height: 1.3;
+    transition: color 0.15s;
+  }
+  .subhead-item:hover .subhead-text { color: var(--white); }
+
+  /* COPY BUTTON */
+  .copy-row {
+    margin-top: 28px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .copy-btn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #999;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { border-color: #888; color: var(--white); }
+
+  /* RESPONSIVE */
+  @media (max-width: 780px) {
+    main { grid-template-columns: 1fr; gap: 40px; }
+    .input-panel { position: static; }
+    header { padding: 20px; }
+    .logo { font-size: 36px; }
+    main { padding: 30px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ticker-wrap">
+  <span class="ticker">BREAKING: Everything is broken • Experts warn you've been doing it wrong • Sources say this changes everything • Watch till the end • You won't believe what scientists discovered • This simple trick will shock you • We need to talk about this • Nobody is talking about this •&nbsp;&nbsp;&nbsp;BREAKING: Everything is broken • Experts warn you've been doing it wrong • Sources say this changes everything • Watch till the end • You won't believe what scientists discovered • This simple trick will shock you • We need to talk about this • Nobody is talking about this •&nbsp;&nbsp;&nbsp;</span>
+</div>
+
+<header>
+  <div>
+    <div class="logo">IS<span>BROKEN</span>.COM</div>
+    <div class="tagline">Automated outrage since 2026 • Powered by existential dread</div>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT -->
+  <div class="input-panel">
+    <div class="panel-label">// Enter subject</div>
+    <div class="input-group">
+      <input type="text" id="subject" placeholder="MAYO" maxlength="40" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="panel-label">// Tone</div>
+    <div class="tone-grid">
+      <button class="tone-btn active" data-tone="outrage">Moral outrage</button>
+      <button class="tone-btn" data-tone="conspiracy">Conspiracy</button>
+      <button class="tone-btn" data-tone="health">Health scare</button>
+      <button class="tone-btn" data-tone="society">Society collapse</button>
+    </div>
+
+    <button class="generate-btn" id="genBtn" onclick="generate()">
+      <span class="btn-text">GENERATE PANIC</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+
+    <hr class="divider">
+
+    <div class="tagline" style="line-height:1.6">
+      Parody. Every real clickbait headline is generated by a machine too — we just made ours honest about it.
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="output-panel">
+    <div class="output-empty" id="emptyState">
+      <span class="big">BROKEN</span>
+      Type something.<br>Watch it collapse.
+    </div>
+
+    <div class="card" id="card">
+      <!-- THUMBNAIL -->
+      <div class="thumbnail" id="thumbnail">
+        <div class="thumb-bg" id="thumbBg"></div>
+
+        <!-- Subject-seeded generated art -->
+        <div class="thumb-art" id="thumbArt"></div>
+
+        <div class="breaking-banner">
+          <span class="breaking-tag">BREAKING</span>
+          <span class="breaking-scroll" id="breakingScroll">DEVELOPING STORY</span>
+        </div>
+
+        <div class="channel-bug" id="channelBug">ABC NEWS 24/7</div>
+
+        <div class="headline-overlay">
+          <div class="headline-main" id="thumbHeadline">—</div>
+        </div>
+
+        <div class="duration-bug" id="durationBug">8:02</div>
+      </div>
+
+      <!-- VIDEO META -->
+      <div class="video-meta">
+        <div class="channel-avatar" id="avatarInitial">N</div>
+        <div class="meta-right">
+          <div class="video-title" id="videoTitle">—</div>
+          <div class="video-sub" id="videoSub">NewsAlert24 • <span>2.1M views</span> • <span>3 hours ago</span></div>
+        </div>
+      </div>
+
+      <!-- SUBHEADLINES -->
+      <div class="subheads">
+        <div class="subheads-label">// More panic about this topic</div>
+        <div id="subheadList"></div>
+      </div>
+
+      <!-- COPY -->
+      <div class="copy-row">
+        <button class="copy-btn" onclick="copyHeadline(this)">Copy headline</button>
+        <button class="copy-btn" onclick="copyLink(this)">Copy share link</button>
+        <button class="copy-btn" onclick="generate()">Regenerate</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  /* =========================================================================
+     IS BROKEN — fully client-side, zero backend, zero API cost.
+     Headlines are assembled from a combinatorial slot-grammar and seeded by
+     subject+tone+variant, so a shared URL always reproduces the same card.
+     No LLM is involved by design: virality costs nothing to serve.
+     ========================================================================= */
+
+  /* ---------- deterministic RNG (xmur3 seed -> mulberry32 stream) ---------- */
+  function xmur3(str) {
+    let h = 1779033703 ^ str.length;
+    for (let i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    return function () {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      return (h ^= h >>> 16) >>> 0;
+    };
+  }
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function makeRng(seedStr) { return mulberry32(xmur3(seedStr)()); }
+  function rpick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+  function rpickUnique(rng, arr, n) {
+    const c = arr.slice(), out = [];
+    while (out.length < n && c.length) out.push(c.splice(Math.floor(rng() * c.length), 1)[0]);
+    return out;
+  }
+
+  /* ---------- token fill + escaping ---------- */
+  function escapeHtml(x) {
+    return x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function fill(t, S, s) { return t.replace(/\{S\}/g, S).replace(/\{s\}/g, s); }
+
+  /* ---------- thumbnail palettes + flavour pools ---------- */
+  const bgPalettes = {
+    outrage: 'linear-gradient(135deg, #1a0005 0%, #2d0010 40%, #0a0a0a 100%)',
+    conspiracy: 'linear-gradient(135deg, #0a0a1a 0%, #0f1535 40%, #0a1a0a 100%)',
+    health: 'linear-gradient(135deg, #001a0a 0%, #002d1a 40%, #0a1a00 100%)',
+    society: 'linear-gradient(135deg, #1a1a00 0%, #2d2d00 40%, #1a0a00 100%)',
+  };
+  const artAccents = { outrage: '#ff2a2a', conspiracy: '#6f7bff', health: '#27e08a', society: '#f5b400' };
+  const artGlyphs  = { outrage: '😱', conspiracy: '👁', health: '🦠', society: '📉' };
+
+  const views = ['1.1M', '2.4M', '847K', '3.2M', '512K', '1.8M', '4.7M', '329K', '12M', '88K'];
+  const times = ['2 hours ago', '3 hours ago', '14 hours ago', 'yesterday', '4 days ago', '2 weeks ago', '6 hours ago', '1 day ago', '5 days ago'];
+  const durations = ['6:12', '8:02', '11:47', '4:58', '9:31', '7:23', '15:02', '22:14', '3:47', '18:09'];
+
+  const CHANNELS = [
+    'ABC NEWS 24/7', 'THE TRUTH REPORT', 'WATCHNOW', 'INVESTIGATES TV',
+    'NEWSALERT', 'THE FRONT LINE', '7.30 REPORT', 'PRIMETIME EXPOSE',
+    'CITIZEN PRESS', 'THE DAILY WIRE', 'THE OFF RECORD', 'UNCOVER',
+    'NIGHTLINE NOW', 'THE BIG STORY', 'FRONTPAGE TV', 'EYEWITNESS 9',
+    "THE PEOPLE'S DESK", 'REAL VOICE', 'THE LEDGER', 'NEWSWATCH PLUS',
+    'THE OBSERVER', 'SIGNAL NEWS', 'WORLD ALERT', 'CAPITAL DISPATCH',
+    'CHANNEL 11 INVESTIGATES', 'OPEN FILE', 'THE RECKONING'
+  ];
+
+  /* =========================================================================
+     COMBINATORIAL GRAMMAR
+     Each field is assembled from independent fragment slots that multiply:
+       thumb     = thumbCore (shared) + thumbTail (tone)
+       breaking  = breakOpener (shared) + breakClaim (tone)
+       video     = videoHook (tone) + videoPayoff (tone)
+       sub       = subLead (tone) + subDetail (tone)   [4 unique leads/card]
+     Tokens: {S} = SUBJECT in caps, {s} = subject as typed.
+     thumbCore entries MUST contain {S} and the word BROKEN (the highlighter
+     wraps the subject and "(IS )BROKEN").
+     ========================================================================= */
+  const SHARED = {
+    thumbCore: [
+      `{S} IS BROKEN`,
+      `{S} IS COMPLETELY BROKEN`,
+      `{S} IS BROKEN BEYOND REPAIR`,
+      `WHY {S} IS BROKEN`,
+      `THEY BROKE {S}`,
+      `{S} WAS BROKEN ALL ALONG`,
+      `EVERY {S} IS BROKEN`,
+      `THE {S} SYSTEM IS BROKEN`,
+      `{S} IS A BROKEN PROMISE`,
+      `{S} HAS BEEN BROKEN FOR YEARS`,
+      `NOBODY ADMITS {S} IS BROKEN`,
+      `THE TRUTH: {S} IS BROKEN`,
+    ],
+    breakOpener: [
+      `BREAKING:`, `SOURCES:`, `EXPERTS WARN:`, `NEW REPORT:`, `OFFICIALS ADMIT:`,
+      `INSIDERS CONFIRM:`, `DEVELOPING:`, `JUST IN:`, `LEAKED:`, `CONFIRMED:`,
+    ],
+  };
+
+  const BANKS = {
+    outrage: {
+      thumbTail: [
+        ``, ` AND THEY KNEW`, ` AND THEY KNEW ALL ALONG`, ` ON PURPOSE`,
+        ` AND YOU PAID FOR IT`, ` AND NOBODY CARES`, `. WE'RE DONE.`, `. ENOUGH.`,
+        ` — IT'S OFFICIAL`, ` — A NATIONAL DISGRACE`, ` AND IT'S A SCANDAL`,
+        ` AND IT WAS DELIBERATE`, ` AND WE LET IT HAPPEN`, ` AND PEOPLE ARE FURIOUS`,
+        ` AND NOBODY WILL FIX IT`, ` AND IT'S A BETRAYAL`,
+      ],
+      breakClaim: [
+        `{S} BROKEN FOR YEARS`, `{S} BEYOND SAVING`, `{S} SCANDAL DEEPENS`,
+        `{S} FAILURE LARGER THAN REPORTED`, `{S} COLLAPSE UNDERWAY`, `{S} TRUST AT HISTORIC LOW`,
+        `{S} LEADERSHIP REFUSES TO COMMENT`, `{S} ROT GOES TO THE TOP`, `PUBLIC OUTRAGE OVER {S} GROWS`,
+        `{S} BETRAYAL FULLY EXPOSED`, `CALLS GROW TO OVERHAUL {S}`, `{S} WHISTLEBLOWERS GO PUBLIC`,
+        `{S} EVEN WORSE THAN FEARED`, `{S}: A FAILURE OF EVERY INSTITUTION`,
+        `{S} EMPLOYEES BREAKING SILENCE`, `{S} CRISIS ENTERS NEW PHASE`,
+      ],
+      videoHook: [
+        `I tried {s} for 30 days`, `I worked in {s} for a decade`,
+        `The {s} industry has been lying for years`, `Everything you were told about {s} was a lie`,
+        `{s} is broken in ways nobody will admit`, `The {s} scandal is finally going public`,
+        `The people who run {s} owe us answers`, `The {s} cover-up lasted twenty years`,
+        `Honest professionals are abandoning {s}`, `The {s} files leaked this week`,
+        `We let {s} get this bad`, `The {s} system is rigged`,
+        `Why I walked away from {s} for good`, `Nobody wants to talk about what {s} became`,
+      ],
+      videoPayoff: [
+        ` — and what I found will make you furious`, ` and the people responsible are still in charge`,
+        ` and nobody in charge seems to care`, `, and the cover-up goes all the way up`,
+        ` and they're still doing it today`, ` and the silence from the top is damning`,
+        ` and the documents prove it beyond doubt`, ` and an entire generation paid the price`,
+        ` and they're getting richer every year`, `, and the receipts are finally public`,
+        ` and honest people are done staying quiet`, ` and it's worse than anyone admitted`,
+        ` and the reckoning is already here`, ` and you deserve to know why`,
+      ],
+      subLead: [
+        `Nobody told you about the {s} scandal`, `I'm a former {s} insider`,
+        `The {s} cover-up timeline`, `The five {s} lies everyone accepted`,
+        `Why honest experts are leaving {s}`, `The {s} document leak`,
+        `What the {s} board won't release`, `The man who tried to fix {s}`,
+        `Your trust in {s} was manufactured`, `The {s} apology tour has begun`,
+        `They sold us {s} as the future`, `The {s} memo nobody was meant to see`,
+        `The {s} promise they quietly broke`, `The {s} reckoning nobody prepared for`,
+      ],
+      subDetail: [
+        ` — and it's worse than people said.`, ` that proves everyone knew.`,
+        ` that ended careers overnight.`, ` and nobody has answered for it.`,
+        ` that changes everything.`, `. The silence since has been total.`,
+        ` and insiders are finally talking.`, ` they buried for a decade.`,
+        ` and the response has been silence.`, ` you were never supposed to see.`,
+      ],
+    },
+
+    conspiracy: {
+      thumbTail: [
+        ``, ` AND THEY HID IT`, `. WAKE UP.`, ` — THEY DON'T WANT YOU TO KNOW`,
+        ` AND IT'S NO ACCIDENT`, `. CONNECT THE DOTS.`, ` BY DESIGN`, ` AND THE FILES PROVE IT`,
+        ` — FOLLOW THE MONEY`, ` AND NOBODY'S ASKING WHY`, `. IT'S ALL CONNECTED.`,
+        ` AND THEY BURIED THE REPORT`, ` — THE PATTERN IS CLEAR`, ` AND YOU WEREN'T TOLD`,
+        ` ON RECORD, THEN ERASED`, ` AND THEY'RE COUNTING ON SILENCE`,
+      ],
+      breakClaim: [
+        `{S} FILES QUIETLY VANISH`, `{S} COVER-UP CONFIRMED`, `{S} TRUTH SUPPRESSED FOR DECADES`,
+        `{S} DOCUMENTS REDACTED`, `{S} WHISTLEBLOWER GOES DARK`, `{S} PAPER TRAIL LEADS UPWARD`,
+        `{S} STORY SCRUBBED FROM RECORD`, `{S}: WHO BENEFITS?`, `{S} FUNDING TRACED TO INSIDERS`,
+        `{S} HEARING ABRUPTLY CANCELED`, `{S} EVIDENCE MYSTERIOUSLY LOST`, `{S} INSIDERS WARNED TO STAY QUIET`,
+        `{S} PATTERN TOO CLEAN TO BE CHANCE`, `{S} ARCHIVE SEALED FOR 50 YEARS`,
+        `{S} LEAK CONTRADICTS OFFICIAL STORY`, `{S}: THE QUESTION THEY WON'T ANSWER`,
+      ],
+      videoHook: [
+        `I followed the {s} money for a year`, `The {s} files don't add up`,
+        `They scrubbed {s} from the record`, `Nobody can explain the {s} timeline`,
+        `The official {s} story has a hole in it`, `I cross-referenced every {s} document`,
+        `The {s} pattern is too clean to be chance`, `A {s} insider reached out to me`,
+        `The {s} hearing was canceled for a reason`, `Everything about {s} traces back to one place`,
+        `They sealed the {s} archive for fifty years`, `The {s} cover-up is hiding in plain sight`,
+        `Someone deleted the {s} evidence`, `The {s} truth was redacted line by line`,
+      ],
+      videoPayoff: [
+        ` and the trail leads exactly where you'd think`, ` — and someone made sure you'd never see it`,
+        ` and the people who asked questions went quiet`, `, and the dots connect themselves`,
+        ` and the official explanation falls apart`, ` and nobody in power will say a word`,
+        ` — wake up, it's all connected`, ` and the timeline doesn't survive scrutiny`,
+        ` and they're counting on you not to look`, `, and follow the money from here`,
+        ` and the redactions tell the real story`, ` and that's the part they buried`,
+        ` and you were never meant to find out`, ` — decide for yourself who benefits`,
+      ],
+      subLead: [
+        `The {s} document they redacted`, `Who really funds {s}`,
+        `The {s} timeline that doesn't add up`, `The {s} witness who disappeared`,
+        `What the {s} archive is hiding`, `The {s} pattern nobody will explain`,
+        `The {s} memo marked 'destroy'`, `The {s} hearing they canceled`,
+        `Follow the {s} money`, `The {s} story scrubbed overnight`,
+        `The {s} coincidence that isn't one`, `The {s} insider who went dark`,
+        `The {s} files sealed until 2070`, `The {s} question they refuse to answer`,
+      ],
+      subDetail: [
+        ` — and the answer is uncomfortable.`, ` that someone tried to erase.`,
+        ` and it points straight to the top.`, `. The dots connect themselves.`,
+        ` they hoped you'd never read.`, ` and the silence is the proof.`,
+        `. Follow it and see where it ends.`, ` that contradicts the official line.`,
+        ` and nobody will go on record.`, ` hiding in plain sight.`,
+      ],
+    },
+
+    health: {
+      thumbTail: [
+        ``, ` AND IT'S MAKING YOU SICK`, ` — DOCTORS WON'T SAY IT`, ` AND YOUR BODY KNOWS`,
+        `. STOP NOW.`, ` AND NOBODY WARNED YOU`, ` — THE STUDIES ARE TERRIFYING`, ` AND IT'S IN YOUR HOME`,
+        ` AND IT'S SPREADING`, ` — A SILENT EPIDEMIC`, ` AND YOU CAN'T UNDO IT`, ` AND IT STARTS YOUNG`,
+        `. CHECK YOURS TONIGHT.`, ` AND BIG PHARMA STAYS QUIET`, ` — SYMPTOMS YOU IGNORE DAILY`,
+        ` AND IT'S ALREADY TOO LATE FOR SOME`,
+      ],
+      breakClaim: [
+        `{S} LINKED TO HIDDEN ILLNESS`, `{S} WARNING ISSUED TO PUBLIC`, `{S} FOUND IN MILLIONS OF HOMES`,
+        `{S} EFFECTS WORSE THAN THOUGHT`, `{S} RISK DOCTORS UNDERPLAY`, `{S} EXPOSURE NOW WIDESPREAD`,
+        `{S} STUDY QUIETLY PULLED`, `{S}: A SILENT EPIDEMIC`, `{S} SYMPTOMS GOING UNDIAGNOSED`,
+        `{S} ALERT FOR PARENTS`, `{S} DAMAGE MAY BE PERMANENT`, `{S} CASES SURGING NATIONWIDE`,
+        `{S} TIED TO EVERYDAY HABITS`, `{S} GUIDELINES SUDDENLY CHANGED`, `{S} CONTAMINATION CONFIRMED`,
+        `{S}: THE DIAGNOSIS NOBODY WANTS`,
+      ],
+      videoHook: [
+        `Your {s} is quietly failing you`, `I had my {s} tested and panicked`,
+        `Doctors won't tell you about {s}`, `The {s} symptom you ignore every day`,
+        `{s} is in your home right now`, `The {s} damage starts younger than you think`,
+        `A nurse warned me about {s}`, `The {s} study they quietly retracted`,
+        `Millions have the {s} problem and don't know it`, `The {s} warning signs hiding in plain sight`,
+        `I changed one {s} habit and everything shifted`, `The {s} risk nobody screens for`,
+        `What {s} is doing to your body right now`, `The {s} epidemic your GP won't name`,
+      ],
+      videoPayoff: [
+        ` and the symptoms are easy to miss`, ` — and the damage may already be done`,
+        ` and the studies are genuinely terrifying`, `, and almost nobody gets screened`,
+        ` and it's spreading faster than reported`, ` and your doctor probably won't mention it`,
+        ` and it starts earlier than anyone admits`, `, and it could be in your home tonight`,
+        ` and the warning signs are everywhere`, ` and the industry would rather you didn't know`,
+        ` and millions already have it`, ` and you can check yours tonight`,
+        ` and once it starts it's hard to reverse`, ` and the guidelines just quietly changed`,
+      ],
+      subLead: [
+        `The {s} symptom doctors miss`, `The {s} test you should demand`,
+        `What {s} is doing to your sleep`, `The {s} study that got pulled`,
+        `The {s} warning for parents`, `The {s} habit quietly harming you`,
+        `The {s} epidemic nobody named`, `The {s} risk your GP underplays`,
+        `The {s} damage that starts young`, `The {s} red flag you ignore daily`,
+        `The {s} contamination in your home`, `The {s} diagnosis on the rise`,
+        `The {s} screening they don't offer`, `The {s} truth the industry buries`,
+      ],
+      subDetail: [
+        ` — and most people miss it.`, ` that almost nobody screens for.`,
+        ` and the damage can be permanent.`, `. Check yours tonight.`,
+        ` that the studies quietly confirm.`, ` and it's spreading fast.`,
+        ` your doctor may never mention.`, ` and it starts earlier than you think.`,
+        `. The warning signs are everywhere.`, ` that millions already have.`,
+      ],
+    },
+
+    society: {
+      thumbTail: [
+        ``, ` AND IT'S NOT COMING BACK`, ` — THE DATA IS BRUTAL`, ` AND WE'RE PRETENDING IT'S FINE`,
+        `. THIS IS THE COLLAPSE.`, ` AND NOBODY MARKED THE DATE`, ` — A CIVILIZATION IN DECLINE`,
+        ` AND THE CHARTS PROVE IT`, ` AND HISTORY IS REPEATING`, ` BEYOND THIS GENERATION`,
+        `. THE NUMBERS DON'T LIE.`, ` AND WE PASSED THE POINT OF NO RETURN`, ` — IT'S ALREADY OVER`,
+        ` AND YOUR KIDS WILL PAY`, ` AND NOBODY IS COMING TO FIX IT`, ` LIKE EVERY EMPIRE BEFORE`,
+      ],
+      breakClaim: [
+        `{S} DECLINE NOW IRREVERSIBLE`, `{S} NUMBERS HIT RECORD LOW`, `{S} COLLAPSE FASTER THAN PREDICTED`,
+        `{S}: A CIVILIZATIONAL EMERGENCY`, `{S} TREND MIRRORS FALL OF ROME`, `{S} FORECAST QUIETLY DOWNGRADED`,
+        `{S} CRISIS SPANS A GENERATION`, `{S} DATA HISTORIANS CALL ALARMING`, `{S} FOUNDATIONS QUIETLY DISSOLVING`,
+        `{S} POINT OF NO RETURN PASSED`, `{S} REPORT WARNS OF COLLAPSE`, `{S} INDICATORS FLASHING RED`,
+        `{S} SOCIAL FABRIC UNRAVELING`, `{S} STATS ECONOMISTS WON'T PUBLISH`, `{S} GENERATION OPTING OUT`,
+        `{S}: THE SLOW-MOTION COLLAPSE`,
+      ],
+      videoHook: [
+        `The {s} chart looks like the fall of Rome`, `Every demographer agrees {s} can't be reversed`,
+        `The {s} numbers describe a dying culture`, `I lived through the {s} decline`,
+        `Nobody under twenty believes {s} will last`, `The {s} forecast economists won't publish`,
+        `We quietly passed the {s} point of no return`, `The {s} collapse is faster than predicted`,
+        `The {s} pattern repeats in every dying empire`, `Your town's {s} story is everyone's now`,
+        `The {s} foundations dissolved while we watched`, `The {s} report warned us in 1998`,
+        `The {s} void is bigger than anyone admits`, `The {s} milestone we passed with no headlines`,
+      ],
+      videoPayoff: [
+        ` and the lines match almost exactly`, ` — and this time it's happening faster`,
+        ` and nobody knows how to bend the curve back`, `, and the data is genuinely brutal`,
+        ` and we're pretending everything is fine`, ` and historians will use it to date the collapse`,
+        ` and your kids will inherit the bill`, `, and it's very probably permanent`,
+        ` and almost nobody marked the moment`, ` and the institutions are hollowing out`,
+        ` and we're already going over the cliff`, ` and the forecast keeps getting downgraded`,
+        ` and the social contract quietly broke`, ` and it should be front-page news`,
+      ],
+      subLead: [
+        `The {s} chart policymakers avoid`, `The {s} numbers that read like collapse`,
+        `Why {s} can't be reversed in our lifetime`, `The {s} census historians find chilling`,
+        `The {s} forecast they won't publish`, `The {s} pattern from every dying empire`,
+        `The {s} point of no return we passed`, `The {s} foundation that quietly dissolved`,
+        `The {s} milestone nobody marked`, `The {s} cliff we're already over`,
+        `The {s} report that warned us decades ago`, `The {s} signal of a culture in decline`,
+        `The {s} shift that broke the social contract`, `The {s} void left when communities emptied`,
+      ],
+      subDetail: [
+        ` — and the lines match exactly.`, ` that nobody knows how to fix.`,
+        ` and it's very probably permanent.`, `. The numbers don't lie.`,
+        ` historians will use to date the collapse.`, ` and we passed it without noticing.`,
+        ` your kids will inherit.`, ` that should be front-page news.`,
+        ` and this time it's faster.`, ` we marked with no headlines at all.`,
+      ],
+    },
+  };
+
+  function buildPhrases(tone, rng) {
+    const b = BANKS[tone] || BANKS.outrage;
+    const thumb = rpick(rng, SHARED.thumbCore) + rpick(rng, b.thumbTail);
+    const breaking = rpick(rng, SHARED.breakOpener) + ' ' + rpick(rng, b.breakClaim);
+    const video = rpick(rng, b.videoHook) + rpick(rng, b.videoPayoff);
+    const leads = rpickUnique(rng, b.subLead, 4);
+    const subs = leads.map(l => l + rpick(rng, b.subDetail));
+    return { thumb, breaking, video, subs };
+  }
+
+  /* =========================================================================
+     GENERATED SVG ART — one tone motif + faded glyph + skyline, all seeded.
+     ========================================================================= */
+  function buildArt(tone, rng) {
+    const W = 800, H = 450;
+    const r = (a, b) => a + rng() * (b - a);
+    const ri = (a, b) => Math.floor(r(a, b + 1));
+    const f = (n) => Math.round(n);
+    const acc = artAccents[tone] || '#ff2a2a';
+    let inner = '';
+
+    // Giant faded glyph, jittered
+    const gx = r(W * 0.46, W * 0.6), gy = r(H * 0.56, H * 0.7), gs = r(300, 360), grot = r(-7, 7);
+    inner += `<text x="${f(gx)}" y="${f(gy)}" font-size="${f(gs)}" text-anchor="middle" opacity="0.15" transform="rotate(${grot.toFixed(1)} ${f(gx)} ${f(gy)})">${artGlyphs[tone] || '⚠'}</text>`;
+
+    if (tone === 'outrage') {
+      // radiating cracks from a seeded origin
+      const ox = r(W * 0.3, W * 0.7), oy = r(H * 0.3, H * 0.55), n = ri(7, 11);
+      for (let i = 0; i < n; i++) {
+        const ang = (i / n) * Math.PI * 2 + r(-0.2, 0.2), len = r(180, 360);
+        const mx = ox + Math.cos(ang) * len * 0.5 + r(-20, 20), my = oy + Math.sin(ang) * len * 0.5 + r(-20, 20);
+        const ex = ox + Math.cos(ang) * len, ey = oy + Math.sin(ang) * len;
+        inner += `<polyline points="${f(ox)},${f(oy)} ${f(mx)},${f(my)} ${f(ex)},${f(ey)}" fill="none" stroke="${acc}" stroke-width="${r(1.5, 3).toFixed(1)}" opacity="0.5"/>`;
+      }
+    } else if (tone === 'conspiracy') {
+      // red-string node board
+      const pts = [], n = ri(6, 9);
+      for (let i = 0; i < n; i++) pts.push([r(80, W - 80), r(70, H - 100)]);
+      for (let i = 0; i < pts.length; i++)
+        for (let j = i + 1; j < pts.length; j++)
+          if (rng() < 0.45)
+            inner += `<line x1="${f(pts[i][0])}" y1="${f(pts[i][1])}" x2="${f(pts[j][0])}" y2="${f(pts[j][1])}" stroke="${acc}" stroke-width="1" opacity="0.4"/>`;
+      pts.forEach(p => inner += `<circle cx="${f(p[0])}" cy="${f(p[1])}" r="${f(r(4, 7))}" fill="${acc}" opacity="0.75"/>`);
+    } else if (tone === 'health') {
+      // virus blobs + flatline blip
+      const n = ri(4, 7);
+      for (let i = 0; i < n; i++) {
+        const cx = r(70, W - 70), cy = r(70, H - 120), rad = r(22, 46), spikes = ri(8, 14);
+        inner += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(rad)}" fill="none" stroke="${acc}" stroke-width="2" opacity="0.5"/>`;
+        for (let k = 0; k < spikes; k++) {
+          const a = (k / spikes) * Math.PI * 2, e = r(6, 12);
+          inner += `<line x1="${f(cx + Math.cos(a) * rad)}" y1="${f(cy + Math.sin(a) * rad)}" x2="${f(cx + Math.cos(a) * (rad + e))}" y2="${f(cy + Math.sin(a) * (rad + e))}" stroke="${acc}" stroke-width="2" opacity="0.5"/>`;
+        }
+      }
+      const ey = r(H * 0.58, H * 0.74), bx = r(W * 0.4, W * 0.6);
+      inner += `<path d="M0 ${f(ey)} L${f(bx - 40)} ${f(ey)} L${f(bx - 20)} ${f(ey - 40)} L${f(bx)} ${f(ey + 50)} L${f(bx + 20)} ${f(ey)} L800 ${f(ey)}" fill="none" stroke="${acc}" stroke-width="2.5" opacity="0.6"/>`;
+    } else {
+      // society: downward jagged collapse line + arrowhead
+      let x = 0, y = r(60, 120), d = `M0 ${f(y)}`;
+      const steps = ri(7, 11), step = W / steps;
+      for (let i = 1; i <= steps; i++) { x = i * step; y = Math.min(H - 70, y + r(10, 55)); d += ` L${f(x)} ${f(y)}`; }
+      inner += `<path d="${d}" fill="none" stroke="${acc}" stroke-width="3" opacity="0.6"/>`;
+      inner += `<path d="M${f(x - 12)} ${f(y - 14)} L${f(x)} ${f(y)} L${f(x + 12)} ${f(y - 12)}" fill="none" stroke="${acc}" stroke-width="3" opacity="0.6"/>`;
+    }
+
+    // bottom skyline silhouette (all tones), seeded
+    let sx = 0;
+    while (sx < W) {
+      const bw = ri(18, 46), bh = ri(30, 120);
+      inner += `<rect x="${sx}" y="${f(H - bh)}" width="${bw}" height="${bh}" fill="#000" opacity="0.85"/>`;
+      sx += bw + ri(2, 10);
+    }
+
+    return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+  }
+
+  /* =========================================================================
+     UI WIRING
+     ========================================================================= */
+  document.querySelectorAll('.tone-btn').forEach(btn => {
+    btn.addEventListener('click', () => setTone(btn.dataset.tone));
+  });
+  document.getElementById('subject').addEventListener('keydown', e => {
+    if (e.key === 'Enter') generate();
+  });
+
+  function getActiveTone() {
+    return document.querySelector('.tone-btn.active')?.dataset.tone || 'outrage';
+  }
+  function setTone(tone) {
+    document.querySelectorAll('.tone-btn').forEach(b => b.classList.toggle('active', b.dataset.tone === tone));
+  }
+
+  // variant bumps on each manual generate so "Regenerate" yields a new — but still
+  // reproducible — card. A shared URL pins (subject, tone, variant).
+  let variant = 1;
+
+  function generate() { variant++; runGenerate(true); }
+
+  function runGenerate(bump) {
+    const input = document.getElementById('subject');
+    const subject = input.value.trim();
+    if (!subject) { input.focus(); return; }
+
+    const tone = getActiveTone();
+    const btn = document.getElementById('genBtn');
+    const spinner = document.getElementById('spinner');
+    const btnText = btn.querySelector('.btn-text');
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    spinner.style.display = 'block';
+
+    // Brief delay keeps the "machine generating outrage" theatre. Pure flavour.
+    setTimeout(() => {
+      const rng = makeRng(subject.toLowerCase() + '|' + tone + '|' + variant);
+      const S = escapeHtml(subject.toUpperCase());
+      const s = escapeHtml(subject);
+      const ph = buildPhrases(tone, rng);
+
+      renderCard(subject, tone, {
+        thumbHeadline: fill(ph.thumb, S, s),
+        videoTitle: fill(ph.video, S, s),
+        breakingScroll: fill(ph.breaking, S, s),
+        channelName: rpick(rng, CHANNELS),
+        subheadlines: ph.subs.map(t => fill(t, S, s)),
+        art: buildArt(tone, rng),
+        duration: rpick(rng, durations),
+        viewCount: rpick(rng, views),
+        timeAgo: rpick(rng, times),
+      });
+      updateUrl(subject, tone, variant);
+
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      btnText.style.display = 'block';
+      spinner.style.display = 'none';
+    }, 280);
+  }
+
+  function renderCard(subject, tone, result) {
+    document.getElementById('thumbBg').style.background = bgPalettes[tone] || bgPalettes.outrage;
+    document.getElementById('thumbArt').innerHTML = result.art;
+
+    // Headline — highlight the subject (yellow) and "(IS )BROKEN" (red box).
+    const S = escapeHtml(subject.toUpperCase());
+    const reSubject = S.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const highlighted = result.thumbHeadline.replace(
+      new RegExp(`(${reSubject}|IS BROKEN|BROKEN|BROKE)`, 'gi'),
+      (match) => match.toUpperCase() === subject.toUpperCase()
+        ? `<span class="broken-word">${match}</span>`
+        : `<span class="is-broken">${match}</span>`
+    );
+    document.getElementById('thumbHeadline').innerHTML = highlighted;
+
+    document.getElementById('breakingScroll').innerHTML = result.breakingScroll;
+
+    const ch = result.channelName;
+    document.getElementById('channelBug').textContent = ch.toUpperCase();
+    document.getElementById('avatarInitial').textContent = ch[0].toUpperCase();
+
+    const durBug = document.getElementById('durationBug');
+    durBug.textContent = result.duration;
+    durBug.style.display = 'block';
+
+    document.getElementById('videoTitle').innerHTML = result.videoTitle;
+    document.getElementById('videoSub').innerHTML = `${ch} • <span>${result.viewCount} views</span> • <span>${result.timeAgo}</span>`;
+
+    const list = document.getElementById('subheadList');
+    list.innerHTML = '';
+    (result.subheadlines || []).forEach((s, i) => {
+      const item = document.createElement('div');
+      item.className = 'subhead-item';
+      item.innerHTML = `<div class="subhead-num">0${i + 1}</div><div class="subhead-text">${s}</div>`;
+      list.appendChild(item);
+    });
+
+    document.getElementById('emptyState').style.display = 'none';
+    const card = document.getElementById('card');
+    card.classList.remove('visible');
+    void card.offsetWidth; // reflow for animation
+    card.classList.add('visible');
+  }
+
+  /* ---------- shareable, reproducible URLs ---------- */
+  function updateUrl(subject, tone, v) {
+    const p = new URLSearchParams();
+    p.set('s', subject); p.set('tone', tone); p.set('v', v);
+    history.replaceState(null, '', '?' + p.toString());
+  }
+  function hydrateFromUrl() {
+    const p = new URLSearchParams(location.search);
+    const s = p.get('s');
+    if (!s) return;
+    const tone = p.get('tone') || 'outrage';
+    variant = parseInt(p.get('v') || '1', 10) || 1;
+    document.getElementById('subject').value = s.slice(0, 40);
+    if (BANKS[tone]) setTone(tone);
+    runGenerate(false);
+  }
+
+  function flash(btn, msg) {
+    const old = btn.textContent;
+    btn.textContent = msg;
+    setTimeout(() => { btn.textContent = old; }, 1500);
+  }
+  function copyHeadline(btn) {
+    const title = document.getElementById('videoTitle').textContent;
+    if (title && title !== '—') navigator.clipboard.writeText(title).then(() => flash(btn, 'Copied.'));
+  }
+  function copyLink(btn) {
+    navigator.clipboard.writeText(location.href).then(() => flash(btn, 'Link copied.'));
+  }
+
+  // DOM is fully parsed (script sits at end of body) — hydrate immediately.
+  hydrateFromUrl();
+</script>
+</body>
+</html>
