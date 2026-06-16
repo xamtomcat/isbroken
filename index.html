@@ -514,6 +514,7 @@
 
       <!-- COPY -->
       <div class="copy-row">
+        <button class="copy-btn" onclick="shareImage(this)">Copy image</button>
         <button class="copy-btn" onclick="copyHeadline(this)">Copy headline</button>
         <button class="copy-btn" onclick="copyLink(this)">Copy share link</button>
         <button class="copy-btn" onclick="generate()">Regenerate</button>
@@ -1044,6 +1045,174 @@
   }
   function copyLink(btn) {
     navigator.clipboard.writeText(location.href).then(() => flash(btn, 'Link copied.'));
+  }
+
+  /* =========================================================================
+     COPY IMAGE — redraw the live thumbnail onto a canvas (no libraries, no
+     network) and put a PNG on the clipboard. Falls back to a download where
+     image-clipboard writes are blocked. The exported PNG carries a
+     PANICGENERATOR.COM watermark (on-screen thumbnail is untouched).
+     ========================================================================= */
+  const canvasPalettes = {
+    outrage: ['#1a0005', '#2d0010', '#0a0a0a'],
+    conspiracy: ['#0a0a1a', '#0f1535', '#0a1a0a'],
+    health: ['#001a0a', '#002d1a', '#0a1a00'],
+    society: ['#1a1a00', '#2d2d00', '#1a0a00'],
+  };
+
+  // Rasterize the current #thumbArt <svg> (self-contained, no external refs ->
+  // does not taint the canvas), then resolve a Blob of the full thumbnail.
+  function renderShareBlob() {
+    return new Promise((resolve, reject) => {
+      const W = 800, H = 450, SC = 1.6;
+      const canvas = document.createElement('canvas');
+      canvas.width = W * SC; canvas.height = H * SC;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(SC, SC);
+
+      const tone = getActiveTone();
+      const cols = canvasPalettes[tone] || canvasPalettes.outrage;
+      const grad = ctx.createLinearGradient(0, 0, W, H);
+      grad.addColorStop(0, cols[0]); grad.addColorStop(0.4, cols[1]); grad.addColorStop(1, cols[2]);
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+
+      const finish = () => {
+        drawThumbnailOverlay(ctx, W, H);
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/png');
+      };
+
+      let svg = document.getElementById('thumbArt').innerHTML;
+      if (!svg) { finish(); return; }
+      svg = svg.replace('<svg ', '<svg width="800" height="450" ');
+      const img = new Image();
+      img.onload = () => { ctx.drawImage(img, 0, 0, W, H); finish(); };
+      img.onerror = finish; // art is decoration — still export the rest
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+  }
+
+  function drawThumbnailOverlay(ctx, W, H) {
+    // bottom darkening gradient (matches .headline-overlay)
+    const og = ctx.createLinearGradient(0, H * 0.4, 0, H);
+    og.addColorStop(0, 'rgba(0,0,0,0)'); og.addColorStop(1, 'rgba(0,0,0,0.96)');
+    ctx.fillStyle = og; ctx.fillRect(0, H * 0.4, W, H * 0.6);
+
+    // watermark (export only) — bottom-left, drives traffic back to the site
+    ctx.font = '13px "IBM Plex Mono", monospace';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = 'rgba(245,240,232,0.45)';
+    ctx.fillText('PANICGENERATOR.COM', 18, H - 16);
+
+    // breaking banner
+    const bh = 34;
+    ctx.fillStyle = '#e8001e'; ctx.fillRect(0, 0, W, bh);
+    ctx.textBaseline = 'middle';
+    ctx.font = '16px Anton, sans-serif';
+    const tag = 'BREAKING', tagW = ctx.measureText(tag).width + 14;
+    ctx.fillStyle = '#f5f0e8'; ctx.fillRect(16, 8, tagW, bh - 16);
+    ctx.fillStyle = '#e8001e'; ctx.fillText(tag, 23, bh / 2 + 1);
+    ctx.fillStyle = '#f5f0e8'; ctx.font = '700 15px "Barlow Condensed", sans-serif';
+    const scroll = (document.getElementById('breakingScroll').textContent || '').toUpperCase();
+    ctx.save(); ctx.beginPath(); ctx.rect(16 + tagW + 12, 0, W - (16 + tagW + 12) - 12, bh); ctx.clip();
+    ctx.fillText(scroll, 16 + tagW + 12, bh / 2 + 1); ctx.restore();
+
+    // channel bug (top-right)
+    ctx.font = '12px "IBM Plex Mono", monospace';
+    const ch = document.getElementById('channelBug').textContent || '';
+    const cw = ctx.measureText(ch).width;
+    ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(W - 14 - cw - 12, 44, cw + 12, 22);
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.strokeRect(W - 14 - cw - 12, 44, cw + 12, 22);
+    ctx.fillStyle = '#aaaaaa'; ctx.fillText(ch, W - 14 - cw - 6, 44 + 12);
+
+    // duration bug (bottom-right)
+    ctx.font = '13px "IBM Plex Mono", monospace';
+    const dur = document.getElementById('durationBug').textContent || '';
+    const dw = ctx.measureText(dur).width;
+    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(W - 12 - dw - 12, H - 12 - 22, dw + 12, 22);
+    ctx.fillStyle = '#f5f0e8'; ctx.fillText(dur, W - 12 - dw - 6, H - 12 - 11);
+
+    // headline — read styled runs straight from the DOM so it matches exactly
+    drawHeadline(ctx, W, H);
+  }
+
+  function drawHeadline(ctx, W, H) {
+    const FS = 44, LH = 48, PAD = 18, BOTTOM = 26;
+    ctx.font = FS + 'px Anton, sans-serif';
+    ctx.textBaseline = 'alphabetic';
+
+    // styled tokens (word + trailing-space granularity)
+    const tokens = [];
+    document.getElementById('thumbHeadline').childNodes.forEach(n => {
+      const txt = n.textContent;
+      if (!txt) return;
+      let style = 'white';
+      if (n.nodeType === 1) {
+        if (n.classList.contains('broken-word')) style = 'yellow';
+        else if (n.classList.contains('is-broken')) style = 'red';
+      }
+      txt.split(/(\s+)/).forEach(p => { if (p !== '') tokens.push({ t: p, style, sp: /^\s+$/.test(p) }); });
+    });
+
+    // wrap into lines
+    const maxW = W - PAD * 2;
+    const lines = [[]]; let lineW = 0;
+    tokens.forEach(tok => {
+      const w = ctx.measureText(tok.t).width;
+      if (tok.sp && lineW === 0) return;                 // drop leading spaces
+      if (!tok.sp && lineW + w > maxW && lines[lines.length - 1].length) { lines.push([]); lineW = 0; }
+      lines[lines.length - 1].push({ ...tok, w });
+      lineW += w;
+    });
+
+    let baseline = H - BOTTOM - (lines.length - 1) * LH;
+    lines.forEach(line => {
+      let x = PAD;
+      line.forEach(tok => {
+        if (!tok.sp) {
+          if (tok.style === 'red') {
+            ctx.fillStyle = '#e8001e';
+            ctx.fillRect(x - 3, baseline - 34, tok.w + 6, 43);
+            ctx.fillStyle = '#f5f0e8';
+          } else if (tok.style === 'yellow') {
+            ctx.fillStyle = '#f5d800';
+          } else {
+            ctx.fillStyle = '#f5f0e8';
+          }
+          ctx.fillText(tok.t, x, baseline);
+          if (tok.style === 'yellow') { // emulate the -webkit-text-stroke thickening
+            ctx.strokeStyle = '#f5d800'; ctx.lineWidth = 1; ctx.strokeText(tok.t, x, baseline);
+          }
+        }
+        x += tok.w;
+      });
+      baseline += LH;
+    });
+  }
+
+  function downloadBlob(blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'panicgenerator.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function shareImage(btn) {
+    const restore = () => setTimeout(() => { btn.textContent = 'Copy image'; }, 1600);
+    btn.textContent = 'Rendering…';
+    const blobP = document.fonts.ready.then(renderShareBlob);
+
+    if (navigator.clipboard && window.ClipboardItem) {
+      navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })])
+        .then(() => { btn.textContent = 'Image copied!'; restore(); })
+        .catch(() => blobP
+          .then(b => { downloadBlob(b); btn.textContent = 'Image saved'; restore(); })
+          .catch(() => { btn.textContent = 'Failed'; restore(); }));
+    } else {
+      blobP
+        .then(b => { downloadBlob(b); btn.textContent = 'Image saved'; restore(); })
+        .catch(() => { btn.textContent = 'Failed'; restore(); });
+    }
   }
 
   // DOM is fully parsed (script sits at end of body) — hydrate immediately.
