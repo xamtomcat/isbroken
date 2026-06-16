@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A parody clickbait headline generator ("ISBROKEN.COM"). The user types a subject and picks a tone; the page renders a fake YouTube thumbnail, video meta, and a list of related panic-headlines.
+A parody clickbait headline generator ("PANICGENERATOR.COM"; the GitHub repo is still named `isbroken`). The user types a subject and picks a tone; the page renders a fake YouTube thumbnail, video meta, and a list of related panic-headlines.
 
 The whole site is one static file: [index.html](index.html). No build step, no backend, no env vars, no dependencies. Drop it on any static host (Vercel, Netlify, GitHub Pages, S3) and it runs.
 
