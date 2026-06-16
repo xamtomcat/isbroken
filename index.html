@@ -929,9 +929,19 @@
   // reproducible — card. A shared URL pins (subject, tone, variant).
   let variant = 1;
 
-  function generate() { variant++; runGenerate(true); }
+  function generate() { variant++; runGenerate(); }
 
-  function runGenerate(bump) {
+  // Clicking a "More panic about this topic" headline opens it: a fresh
+  // thumbnail/art/breaking + related list (new variant) with the clicked
+  // phrase promoted to the video title. Passed as plain text; escaped on
+  // display. titleOverride round-trips through the URL so it stays shareable.
+  function openRelated(phrase) {
+    variant++;
+    runGenerate(phrase);
+    document.getElementById('thumbnail').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function runGenerate(titleOverride) {
     const input = document.getElementById('subject');
     const subject = input.value.trim();
     if (!subject) { input.focus(); return; }
@@ -955,7 +965,7 @@
 
       renderCard(subject, tone, {
         thumbHeadline: fill(ph.thumb, S, s),
-        videoTitle: fill(ph.video, S, s),
+        videoTitle: titleOverride ? escapeHtml(titleOverride) : fill(ph.video, S, s),
         breakingScroll: fill(ph.breaking, S, s),
         channelName: rpick(rng, CHANNELS),
         subheadlines: ph.subs.map(t => fill(t, S, s)),
@@ -964,7 +974,7 @@
         viewCount: rpick(rng, views),
         timeAgo: rpick(rng, times),
       });
-      updateUrl(subject, tone, variant);
+      updateUrl(subject, tone, variant, titleOverride);
 
       btn.classList.remove('loading');
       btn.disabled = false;
@@ -1003,10 +1013,13 @@
 
     const list = document.getElementById('subheadList');
     list.innerHTML = '';
-    (result.subheadlines || []).forEach((s, i) => {
+    (result.subheadlines || []).forEach((sh, i) => {
       const item = document.createElement('div');
       item.className = 'subhead-item';
-      item.innerHTML = `<div class="subhead-num">0${i + 1}</div><div class="subhead-text">${s}</div>`;
+      item.title = 'Open this panic';
+      item.innerHTML = `<div class="subhead-num">0${i + 1}</div><div class="subhead-text">${sh}</div>`;
+      const textEl = item.querySelector('.subhead-text');
+      item.addEventListener('click', () => openRelated(textEl.textContent));
       list.appendChild(item);
     });
 
@@ -1018,9 +1031,10 @@
   }
 
   /* ---------- shareable, reproducible URLs ---------- */
-  function updateUrl(subject, tone, v) {
+  function updateUrl(subject, tone, v, title) {
     const p = new URLSearchParams();
     p.set('s', subject); p.set('tone', tone); p.set('v', v);
+    if (title) p.set('t', title);
     history.replaceState(null, '', '?' + p.toString());
   }
   function hydrateFromUrl() {
@@ -1031,7 +1045,8 @@
     variant = parseInt(p.get('v') || '1', 10) || 1;
     document.getElementById('subject').value = s.slice(0, 40);
     if (BANKS[tone]) setTone(tone);
-    runGenerate(false);
+    const title = (p.get('t') || '').slice(0, 200);
+    runGenerate(title || undefined);
   }
 
   function flash(btn, msg) {
