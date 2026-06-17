@@ -566,15 +566,43 @@
   }
   function fill(t, S, s) { return t.replace(/\{S\}/g, S).replace(/\{s\}/g, s); }
 
-  /* ---------- thumbnail palettes + flavour pools ---------- */
-  const bgPalettes = {
-    outrage: 'linear-gradient(135deg, #1a0005 0%, #2d0010 40%, #0a0a0a 100%)',
-    conspiracy: 'linear-gradient(135deg, #0a0a1a 0%, #0f1535 40%, #0a1a0a 100%)',
-    health: 'linear-gradient(135deg, #001a0a 0%, #002d1a 40%, #0a1a00 100%)',
-    society: 'linear-gradient(135deg, #1a1a00 0%, #2d2d00 40%, #1a0a00 100%)',
+  /* ---------- thumbnail palettes + flavour pools ----------
+     Per-tone palette TRIPLETS [c0,c1,c2] (drive both the CSS gradient and the
+     PNG export) plus accent and glyph POOLS. One of each is picked per generate
+     so two cards of the same tone don't share a visual identity — this is what
+     keeps consecutive generates from feeling identical. */
+  const palettes = {
+    outrage: [
+      ['#1a0005', '#2d0010', '#0a0a0a'], ['#220006', '#3a0014', '#120000'],
+      ['#1a0a00', '#350f05', '#0a0500'], ['#1f0010', '#2d0020', '#0a0008'],
+    ],
+    conspiracy: [
+      ['#0a0a1a', '#0f1535', '#0a1a0a'], ['#080818', '#141a45', '#06121f'],
+      ['#0d0a20', '#1a1040', '#0a0a16'], ['#06121a', '#0f2a38', '#06161a'],
+    ],
+    health: [
+      ['#001a0a', '#002d1a', '#0a1a00'], ['#0a1a0a', '#10301a', '#001008'],
+      ['#00140f', '#013a2a', '#0a1500'], ['#04190f', '#0a3326', '#001a12'],
+    ],
+    society: [
+      ['#1a1a00', '#2d2d00', '#1a0a00'], ['#1a1405', '#332600', '#140a00'],
+      ['#16160a', '#2a2410', '#100a00'], ['#1f1500', '#33240a', '#160a05'],
+    ],
   };
-  const artAccents = { outrage: '#ff2a2a', conspiracy: '#6f7bff', health: '#27e08a', society: '#f5b400' };
-  const artGlyphs  = { outrage: '😱', conspiracy: '👁', health: '🦠', society: '📉' };
+  const artAccents = {
+    outrage:    ['#ff2a2a', '#ff5a1e', '#ff1e5a', '#ffb000'],
+    conspiracy: ['#6f7bff', '#27e0c0', '#b46bff', '#4ad8ff'],
+    health:     ['#27e08a', '#5ce04a', '#27d0e0', '#b6e027'],
+    society:    ['#f5b400', '#e0732a', '#f5e000', '#e0a85c'],
+  };
+  const artGlyphs = {
+    outrage:    ['😱', '🔥', '😤', '💢', '🤬', '⚠️', '💀'],
+    conspiracy: ['👁', '🕵️', '🛸', '📡', '🔺', '🌐', '🧩'],
+    health:     ['🦠', '☣️', '🤒', '💊', '🧫', '🩺', '🌡️'],
+    society:    ['📉', '🏚️', '⏳', '🪦', '🧨', '🕳️', '⚰️'],
+  };
+  function cssGrad(cols) { return `linear-gradient(135deg, ${cols[0]} 0%, ${cols[1]} 40%, ${cols[2]} 100%)`; }
+  let currentPalette = palettes.outrage[0]; // kept in sync so the PNG export matches the screen
 
   const views = ['1.1M', '2.4M', '847K', '3.2M', '512K', '1.8M', '4.7M', '329K', '12M', '88K'];
   const times = ['2 hours ago', '3 hours ago', '14 hours ago', 'yesterday', '4 days ago', '2 weeks ago', '6 hours ago', '1 day ago', '5 days ago'];
@@ -850,12 +878,13 @@
     const r = (a, b) => a + rng() * (b - a);
     const ri = (a, b) => Math.floor(r(a, b + 1));
     const f = (n) => Math.round(n);
-    const acc = artAccents[tone] || '#ff2a2a';
+    const acc = rpick(rng, artAccents[tone] || artAccents.outrage);
+    const glyph = rpick(rng, artGlyphs[tone] || artGlyphs.outrage);
     let inner = '';
 
     // Giant faded glyph, jittered
     const gx = r(W * 0.46, W * 0.6), gy = r(H * 0.56, H * 0.7), gs = r(300, 360), grot = r(-7, 7);
-    inner += `<text x="${f(gx)}" y="${f(gy)}" font-size="${f(gs)}" text-anchor="middle" opacity="0.15" transform="rotate(${grot.toFixed(1)} ${f(gx)} ${f(gy)})">${artGlyphs[tone] || '⚠'}</text>`;
+    inner += `<text x="${f(gx)}" y="${f(gy)}" font-size="${f(gs)}" text-anchor="middle" opacity="0.15" transform="rotate(${grot.toFixed(1)} ${f(gx)} ${f(gy)})">${glyph}</text>`;
 
     if (tone === 'outrage') {
       // radiating cracks from a seeded origin
@@ -962,6 +991,7 @@
       const S = escapeHtml(subject.toUpperCase());
       const s = escapeHtml(subject);
       const ph = buildPhrases(tone, rng);
+      currentPalette = rpick(rng, palettes[tone] || palettes.outrage);
 
       renderCard(subject, tone, {
         thumbHeadline: fill(ph.thumb, S, s),
@@ -969,6 +999,7 @@
         breakingScroll: fill(ph.breaking, S, s),
         channelName: rpick(rng, CHANNELS),
         subheadlines: ph.subs.map(t => fill(t, S, s)),
+        palette: currentPalette,
         art: buildArt(tone, rng),
         duration: rpick(rng, durations),
         viewCount: rpick(rng, views),
@@ -984,7 +1015,7 @@
   }
 
   function renderCard(subject, tone, result) {
-    document.getElementById('thumbBg').style.background = bgPalettes[tone] || bgPalettes.outrage;
+    document.getElementById('thumbBg').style.background = cssGrad(result.palette || palettes[tone][0]);
     document.getElementById('thumbArt').innerHTML = result.art;
 
     // Headline — highlight the subject (yellow) and "(IS )BROKEN" (red box).
@@ -1068,13 +1099,6 @@
      image-clipboard writes are blocked. The exported PNG carries a
      PANICGENERATOR.COM watermark (on-screen thumbnail is untouched).
      ========================================================================= */
-  const canvasPalettes = {
-    outrage: ['#1a0005', '#2d0010', '#0a0a0a'],
-    conspiracy: ['#0a0a1a', '#0f1535', '#0a1a0a'],
-    health: ['#001a0a', '#002d1a', '#0a1a00'],
-    society: ['#1a1a00', '#2d2d00', '#1a0a00'],
-  };
-
   // Rasterize the current #thumbArt <svg> (self-contained, no external refs ->
   // does not taint the canvas), then resolve a Blob of the full thumbnail.
   function renderShareBlob() {
@@ -1085,8 +1109,7 @@
       const ctx = canvas.getContext('2d');
       ctx.scale(SC, SC);
 
-      const tone = getActiveTone();
-      const cols = canvasPalettes[tone] || canvasPalettes.outrage;
+      const cols = currentPalette || palettes.outrage[0];
       const grad = ctx.createLinearGradient(0, 0, W, H);
       grad.addColorStop(0, cols[0]); grad.addColorStop(0.4, cols[1]); grad.addColorStop(1, cols[2]);
       ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
